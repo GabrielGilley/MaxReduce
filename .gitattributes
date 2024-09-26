@@ -1,0 +1,1 @@
+test/data/zcash_blocks/zcash_blocks_test.txt filter=lfs diff=lfs merge=lfs -text

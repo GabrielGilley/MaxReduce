@@ -1,0 +1,3 @@
+FROM pando_run
+
+ENTRYPOINT ["/usr/local/bin/pando_mon"]

@@ -1,0 +1,4 @@
+cython==3.0
+pytest
+pycryptodome
+rlp
