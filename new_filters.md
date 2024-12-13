@@ -91,7 +91,24 @@ done
 ```
 #### ii. Change all copied filters to use ABC instead of ETH
 ```bash
-sed -i 's/ETH/ABC/g' ABC_*.cpp
+sed -i "/ETH_BASED_/!{/new ETH fork./!s/ETH/ABC/g}" ABC_*.cpp
+```
+
+#### Generalized:
+```bash
+#!/bin/bash
+
+# Define variables
+parent="ETH"
+fork="ABC"
+
+# Copy files parent filters into fork filters
+for f in ${parent}_*.cpp; do
+    cp "$f" "${f/${parent}_/${fork}_}"
+done
+
+# Replace text in new files but ignore the include and a comment
+sed -i "/${parent}_BASED_/!{/new ${parent} fork./!s/${parent}/${fork}/g}" ${fork}_*.cpp
 ```
 That's it! Your filters are completely implemented.
 

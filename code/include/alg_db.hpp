@@ -35,10 +35,16 @@ class AlgDB : public SeqDB {
 
         itkey_t iter_ = 0;
 
+        bool skip_group_filters_ = false;
+
     public:
         using SeqDB::SeqDB;
 
         itkey_t get_iter() const { return iter_; }
+
+        void disable_group_filters() {
+            skip_group_filters_ = true;
+        }
 
         //                                 SEND it, DEST vtx,  data..
         //graph key (graph_t), then msg_t = <itkey_t, <vertex_t, vector<MData>>>
@@ -49,7 +55,10 @@ class AlgDB : public SeqDB {
             // Sequential version
             // Setup 'vertices_' for myself
             // FIXME
-            auto ret_entries = db_.retrieve_all_entries();
+            vector<DBEntry<>> ret_entries;
+            if (!skip_group_filters_) {
+                ret_entries = db_.retrieve_all_entries();
+            }
             for (auto & entry : ret_entries) {         // TODO : replace this with a C++ iterator that automatically "batches" behind the scene
                 if (entry.random_key()) continue;
                 dbkey_t k = entry.get_key();
@@ -82,7 +91,10 @@ class AlgDB : public SeqDB {
 
             list<DBEntry<>> entries;
 
-            auto ret_entries = db_.retrieve_all_entries();
+            vector<DBEntry<>> ret_entries;
+            if (!skip_group_filters_) {
+                ret_entries = db_.retrieve_all_entries();
+            }
             for (auto & entry : ret_entries) {         // TODO : replace this with a C++ iterator that automatically "batches" behind the scene
                 if (entry.random_key()) continue;
                 dbkey_t k = entry.get_key();

@@ -681,6 +681,58 @@ TEST(in_out_edges) {
 
 }
 
+TEST(skip_group_filters) {
+    bool skip_group_filters = true;
+    elga::ZMQAddress db1_addr { "127.0.0.1", g_idx+=inc_amount };
+    ParDBThread<ParDB> db1 {db1_addr, 2ull*(1ull<<29), skip_group_filters};
+    ParDBClient c1 { db1_addr };
+    elga::ZMQAddress db2_addr { "127.0.0.1", g_idx+=inc_amount };
+    ParDBThread<ParDB> db2 {db2_addr, 2ull*(1ull<<29), skip_group_filters};
+    ParDBClient c2 { db2_addr };
+    elga::ZMQAddress db3_addr { "127.0.0.1", g_idx+=inc_amount };
+    ParDBThread<ParDB> db3 {db3_addr, 2ull*(1ull<<29), skip_group_filters};
+    ParDBClient c3 { db3_addr };
+
+    c1.add_neighbor(db2_addr);
+    c1.add_neighbor(db3_addr);
+    c2.add_neighbor(db3_addr);
+    this_thread::sleep_for(chrono::milliseconds(50));
+
+    EQ(c1.num_neighbors(), 3);
+    EQ(c2.num_neighbors(), 3);
+    EQ(c3.num_neighbors(), 3);
+
+    // Load part of the entry for the group filter. We are going to create two
+    // single_entry filters that do the processing that would allow the group
+    // filter to run. One of these filters will simply add the 'A' tag to the
+    // entry based on it's key. The next filter will see that the 'A' tag was
+    // added, which allows it to run, and create the second entry that's
+    // expected for the simple_group filter.
+    {
+        dbkey_t new_key = {1,1,5};
+        DBEntry<> e; e.set_key(new_key); c1.add_entry(e);
+    }
+
+    EQ(c1.db_size() + c2.db_size() + c3.db_size(), 1);
+
+
+    c1.add_filter_dir(build_dir+"/test/filters");
+
+    // purposely do these out of expected order
+    c1.install_filter("test_par_alg_db_create_second_entry");
+    c1.install_filter("test_par_alg_db_add_first_entry_tag");
+
+    c1.install_filter("test_algdb_simple_group");
+    this_thread::sleep_for(chrono::milliseconds(50));
+    c1.process();
+    this_thread::sleep_for(chrono::milliseconds(50*10));
+    
+    // the group filter should not have run, so only expect 2 entries
+    EQ(c1.db_size() + c2.db_size() + c3.db_size(), 2);
+
+    TEST_PASS
+}
+
 
 TESTS_BEGIN
     elga::ZMQChatterbox::Setup();
@@ -701,6 +753,7 @@ TESTS_BEGIN
     RUN_TEST(BTC_tx_subgraph_search_parallel)
     RUN_TEST(in_out_edges)
     RUN_TEST(subgraph_search_only)
+    RUN_TEST(skip_group_filters)
 
     elga::ZMQChatterbox::Teardown();
 TESTS_END

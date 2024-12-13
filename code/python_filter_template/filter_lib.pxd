@@ -34,6 +34,7 @@ cdef extern from "filter.hpp":
         void* group
 
     cdef chain_info_t pack_chain_info(uint32_t a, uint16_t b, uint16_t c)
+    cdef uint32_t get_blockchain_key(const char* blockchain)
 
     # Blockchain Key Constants, 31 bits
     cdef uint32_t BTC_KEY "BTC_KEY"
@@ -89,3 +90,6 @@ cdef extern from "filter.hpp":
     cdef uint16_t SHAPESHIFT_KEY "SHAPESHIFT_KEY"
     cdef uint16_t NOT_UTXO_KEY "NOT_UTXO_KEY"
     cdef uint16_t UTXO_KEY "UTXO_KEY"
+
+cdef extern from "dbkey.h":
+    cdef const dbkey_t INITIAL_KEY

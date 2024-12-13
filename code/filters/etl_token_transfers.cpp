@@ -53,7 +53,7 @@ void run_(const DBAccess *access) {
     // - Value
     // - Block
     string address;
-    string tx_hash;
+    string transaction_hash;
     vector<string> values;
     boost::split(values, access->value, boost::is_any_of("\n"));
     for (std::string line: values){
@@ -64,9 +64,9 @@ void run_(const DBAccess *access) {
                 return fail_(access, "Did not have a token address!");
             }
         }
-        if (boost::starts_with(line, "tx_hash:")) {
-            tx_hash = get_after(line, "tx_hash:");
-            if (tx_hash == "") {
+        if (boost::starts_with(line, "transaction_hash:")) {
+            transaction_hash = get_after(line, "transaction_hash:");
+            if (transaction_hash == "") {
                 access->add_tag.run(&access->add_tag, filter_fail_tag);
                 return fail_(access, "Did not have a transaction hash!");
             }
@@ -75,10 +75,10 @@ void run_(const DBAccess *access) {
 
     vtx_t src_key;
     stringstream ss;
-    ss << tx_hash.substr(2,15);
+    ss << transaction_hash.substr(2,15);
     ss >> hex >> src_key;
 
-    const char* new_tags[] = {address.c_str(), "ethereum_etl_token_transfer_parsed", tx_hash.c_str(), ""};
+    const char* new_tags[] = {address.c_str(), "ethereum_etl_token_transfer_parsed", transaction_hash.c_str(), ""};
     chain_info_t eth_key = pack_chain_info(ETH_KEY, ETL_TX_TOKEN_KEY, 0);
     dbkey_t new_key = {eth_key, src_key, 0};
     string new_val = access->value;

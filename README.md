@@ -56,7 +56,6 @@ make test
 This assumes you have a cluster of machines with Pando installed on each.
 It assumes you have a shared drive located in `/cscratch`.
 
-
 ### Starting the DB
 
 To start a Pando cluster, go to the `slurm` directory in the `pando` repo.
@@ -91,8 +90,6 @@ There are a few different ways to ingest data into Pando:
     1.1. This can be done either from the Python API or with the `import_db` command on the `pando_client`.  
     1.2. It expects an argument of the directory full of files with data in the format exported via the `export_db` command
 3. Adding a file manually via the `add_db_file` command
-
-test
 
 ### Jupyter-Notebook Analysis
 

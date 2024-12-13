@@ -13,6 +13,7 @@ WORKDIR /
 COPY --from=dev /usr/local/ /usr/local/
 COPY --from=dev /build/filters/*.so /filters/
 COPY --from=dev /build/pybind11/*.so /usr/local/bin/
+COPY --from=dev /build/pybind11/*.py /usr/local/bin/
 
 COPY env/requirements_build.txt .
 RUN apk add boost-context boost-fiber py3-pybind11 zeromq zeromq-dev ncurses python3-dev py3-pip

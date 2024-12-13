@@ -18,7 +18,7 @@ namespace std {
     // https://www.boost.org/doc/libs/1_71_0/boost/container_hash/hash.hpp
 	// Templated by https://stackoverflow.com/questions/7110301/generic-hash-for-tuples-in-unordered-map-unordered-set
     template <class T>
-    inline void hash_combine(std::size_t& seed, T const& v)
+    inline void my_hash_combine(std::size_t& seed, T const& v)
     {
         seed ^= hash<T>()(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
     }
@@ -27,9 +27,9 @@ namespace std {
     struct hash<dbkey_t> {
         std::size_t operator()(const dbkey_t &k) const {
             size_t res = 0x0;
-            hash_combine(res, k.a);
-            hash_combine(res, k.b);
-            hash_combine(res, k.c);
+            my_hash_combine(res, k.a);
+            my_hash_combine(res, k.b);
+            my_hash_combine(res, k.c);
             return res;
         }
     };
@@ -117,6 +117,7 @@ inline bool is_random_key(dbkey_t k) {
 #define RCN_KEY (uint32_t)36
 #define OMNI_KEY (uint16_t)37
 #define BNB_KEY (uint32_t)38
+#define MATIC_KEY (uint32_t)39
 
 /** Filter-specific Key Constants, 16 bits */
 #define TX_IN_EDGE_KEY (uint16_t)0
@@ -213,8 +214,12 @@ inline uint32_t get_blockchain_key(const char* blockchain) {
         return USDC_KEY;
     else if (strcmp(blockchain, "RCN") == 0)
         return RCN_KEY;
+    else if (strcmp(blockchain, "MATIC") == 0)
+        return MATIC_KEY;
+    else if (strcmp(blockchain, "ETL_TOKEN") == 0)
+        return ETL_TOKEN_KEY;
     else if (strcmp(blockchain, "BNB") == 0)
-	return BNB_KEY;
+        return BNB_KEY;
     else
         return (uint32_t)-1;
 }

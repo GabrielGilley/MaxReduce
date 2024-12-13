@@ -1,0 +1,33 @@
+TAGS
+0xf4d2888d29d722226fafa5d9b24f9164c092421e
+LOOKS
+LooksRare Token
+ethereum_etl_token_address
+VALUE
+address:0xf4d2888d29d722226fafa5d9b24f9164c092421e
+symbol:LOOKS
+name:LooksRare Token
+supply:464273780000000000000000000
+END
+TAGS
+0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0
+MATIC
+Matic Token
+ethereum_etl_token_address
+VALUE
+address:0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0
+symbol:MATIC
+name:Matic Token
+supply:10000000000000000000000000000
+END
+TAGS
+0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2
+MKR
+Maker
+ethereum_etl_token_address
+VALUE
+address:0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2
+symbol:MKR
+name:Maker
+supply:977631036950888222010062
+END

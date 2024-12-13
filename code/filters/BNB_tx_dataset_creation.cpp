@@ -13,7 +13,7 @@
 using namespace std;
 using namespace pando;
 
-#define CRYPTO_TAG "ETH"
+#define CRYPTO_TAG "BNB"
 #define FILTER "_tx_dataset_creation"
 #define FILTER_NAME CRYPTO_TAG FILTER
 static const char* crypto_tag = CRYPTO_TAG;

@@ -27,7 +27,7 @@ build_sif pando_pardb env
 build_sif pando_client env
 build_sif pando_mon env
 build_sif pando_top env
-build_im pando_python env
+build_sif pando_python env
 build_sif pando_jupyter env
 
 popd

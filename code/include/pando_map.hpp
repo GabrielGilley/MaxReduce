@@ -149,7 +149,7 @@ class PandoMap : public PandoParticipant {
         }
 
         void recv_map_get_entries(zmq_socket_t sock, [[maybe_unused]] const char* data, [[maybe_unused]] const char* end) {
-            size_t msg_size = 0;
+            size_t msg_size = sizeof(size_t);
             // Iterate through the DB, finding the serialize size everywhere
             for (auto & [key, entry] : map_) {
                 msg_size += entry.serialize_size();
@@ -158,6 +158,13 @@ class PandoMap : public PandoParticipant {
             // Allocate the msg
             char* msg = new char[msg_size];
             char *msg_ptr = msg;
+
+            // First, pack the size of the message into the message itself.
+            // This *should* be handled by ZeroMQ, but since we're sending huge
+            // messages, the message size can exceed the MAX_INT value, and
+            // then the size is incorrectly determined. So let's do that
+            // ourselves
+            pack_single(msg_ptr, msg_size);
 
             // Serialize all entries into it
             for (auto & [key, entry] : map_) {

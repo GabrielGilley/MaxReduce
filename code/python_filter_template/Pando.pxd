@@ -74,6 +74,13 @@ cdef inline void _fill_tags(char** c_tags, list py_tags, int limit):
         c_tags[i] = <char*>tag
 
 
+cdef inline void make_new_entry_lt_3_tags(const DBAccess* access, list tags, object value, dbkey_t new_key):
+    limit = 3
+    cdef char* new_tags[3]  # Has to be manually declared, can't use 'limit'
+    _fill_tags(new_tags, tags, limit)
+    new_value = make_value(value)
+    access.make_new_entry.run(&access.make_new_entry, new_tags, new_value, <dbkey_t>new_key)
+
 cdef inline void make_new_entry_lt_10_tags(const DBAccess* access, list tags, object value, dbkey_t new_key):
     """
       Function:

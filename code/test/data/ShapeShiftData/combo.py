@@ -68,15 +68,15 @@ for i in Bmatches:
     i["inputType"] = Amatches[j]["curIn"]
     j += 1
 
-the_file = open('somefile.txt', 'a')
+the_file = open('ShapeShiftData.txt', 'a')
 for i in Bmatches:
     the_file.write("TAGS\n")
     the_file.write("inputCoin:"+ i["inputType"]+"\n")
-    the_file.write("ouputCoin:"+ i["outputType"]+"\n")
+    the_file.write("outputCoin:"+ i["outputType"]+"\n")
     the_file.write("ShapeShift_tx_raw\n")
     the_file.write("VALUE\n")
     the_file.write("inputCoin:"+ i["inputType"]+"\n")
-    the_file.write("ouputCoin:"+ i["outputType"]+"\n")
+    the_file.write("outputCoin:"+ i["outputType"]+"\n")
     the_file.write("inputTxId:" + i["txId"] + "\n")
     the_file.write("outputTxId:" + i["withdrawTx"] + "\n")
     the_file.write("timestamp:" + str(i["timestamp"]) + "\n")

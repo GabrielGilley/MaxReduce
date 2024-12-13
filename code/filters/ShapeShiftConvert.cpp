@@ -64,8 +64,8 @@ void run_(const DBAccess *access) {
         if (boost::starts_with(line, "inputCoin:")){
             inputCoin = get_after(line, "inputCoin:");
         }
-        if (boost::starts_with(line, "ouputCoin:")){
-            outputCoin = get_after(line, "ouputCoin:");
+        if (boost::starts_with(line, "outputCoin:")){
+            outputCoin = get_after(line, "outputCoin:");
         }
         if (boost::starts_with(line, "timestamp:")){
             timestamp = line;

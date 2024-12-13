@@ -273,6 +273,35 @@ TEST(insert_multiple) {
     TEST_PASS
 }
 
+TEST(large_msg) {
+    ZMQAddress map_addr {"127.0.0.1", ++g_idx};
+    ParDBThread<PandoMap> m {map_addr, 16ull*(1ull<<30)};
+    PandoMapClient c {map_addr, map_addr};
+
+    string val;
+    for (size_t j = 0; j < 1000; ++j) {
+        val += "hello world";
+    }
+
+    size_t num_entries_to_add = 250000;
+
+    for (size_t i = 0; i < num_entries_to_add; ++i) {
+        DBEntry<> e;
+        dbkey_t key {i, 0, 0};
+        e.set_key(key);
+        e.value() = val;
+        e.add_tag("test");
+        c.insert(move(e));
+    }
+
+    auto entries = c.retrieve_all_entries();
+
+    EQ(entries.size(), num_entries_to_add);
+
+    TEST_PASS
+
+}
+
 TESTS_BEGIN
     elga::ZMQChatterbox::Setup();
     RUN_TEST(insert_retrieve)
@@ -284,5 +313,6 @@ TESTS_BEGIN
     //RUN_TEST(start_stop_quickly) //FIXME does this test even make sense? fails on ubuntu
     RUN_TEST(retrieve_if_exists)
     RUN_TEST(insert_multiple)
+    RUN_TEST(large_msg)
     elga::ZMQChatterbox::Teardown();
 TESTS_END

@@ -2326,7 +2326,10 @@ namespace pigo {
         // MMAP the space
         data_ = (char*)mmap(NULL, size_*sizeof(char), prot,
                 MAP_SHARED | MAP_NORESERVE, fd, 0);
-        if (data_ == MAP_FAILED) throw Error("PIGO: MMAP");
+        if (data_ == MAP_FAILED) {
+            std::cerr << "ERROR when trying to open: " << fn.c_str() << std::endl;
+            throw Error("PIGO: MMAP failed with error: " + std::string(strerror(errno)));
+        }
         if (fclose(f) != 0) throw Error("PIGO: Fclose");
 
         // Advise the mmap for performance

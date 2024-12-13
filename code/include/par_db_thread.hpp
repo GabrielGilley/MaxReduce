@@ -23,10 +23,16 @@ class ParDBThread {
         volatile sig_atomic_t shutdown_;
     public:
         /** @brief Initialize a ParDB and run its server on a new thread */
+        ParDBThread(ZMQAddress addr, size_t sz, bool skip_group_filters) : db_(addr, sz, skip_group_filters), shutdown_(false) {
+            t_ = thread(&ParDBThread::launch, this);
+        }
+
         ParDBThread(ZMQAddress addr, size_t sz) : db_(addr, sz), shutdown_(false) {
             t_ = thread(&ParDBThread::launch, this);
         }
+
         ParDBThread(ZMQAddress addr) : ParDBThread(addr, 2ull*(1ull<<29)) { }
+
         /** @brief Cleanup the ParDB, including first shutting down gracefully */
         ~ParDBThread() { shutdown(); }
         /** @brief Shutdown the ParDB gracefully */

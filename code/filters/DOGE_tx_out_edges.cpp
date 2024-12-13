@@ -1,24 +1,25 @@
-#include "ETH_BASED_block_dataset_creation.hpp"
+#include "BTC_BASED_tx_out_edges.hpp"
 
 /* ========================================================
 
    This is the tag of the actual blockchain, not the blockchain it was forked from.
-   Edit this tag to the new crypto tag if creating filters for a new BTC fork.
+   Edit this tag to the new crypto tag if creating filters for a new ETH fork.
    This is the only edit needed.
 
    ======================================================== */
-#define CRYPTO_TAG "ETH"
+#define CRYPTO_TAG "DOGE"
 
-#define FILTER "_block_dataset_creation"
+#define FILTER "_tx_out_edges"
 #define FILTER_NAME CRYPTO_TAG FILTER
 
 static const char* crypto_tag = CRYPTO_TAG;
 static const char* filter_name = FILTER_NAME;
 static const char* filter_done_tag = FILTER_NAME ":done";
 static const char* filter_fail_tag = FILTER_NAME ":fail";
+static const char* filter_inactive_tag = FILTER_NAME ":inactive";
 
-void run_(const DBAccess *access) {
-    return eth_based_block_dataset_creation(access, crypto_tag, filter_name, filter_fail_tag, filter_done_tag);
+void run_(const DBAccess *access)  {
+    return btc_based_tx_out_edges(access, crypto_tag, filter_name, filter_done_tag, filter_fail_tag, filter_inactive_tag);
 }
 
 // Fit the Pando API
@@ -30,7 +31,7 @@ extern "C" {
     }
 
     extern bool should_run(const DBAccess* access) {
-        return should_run_eth_based_block_dataset_creation(access, crypto_tag, filter_fail_tag, filter_done_tag);
+        return should_run_btc_based_tx_out_edges(access, crypto_tag, filter_done_tag, filter_fail_tag, filter_inactive_tag);
     }
 
     /** @brief Contains the entry point and tags for the filter */

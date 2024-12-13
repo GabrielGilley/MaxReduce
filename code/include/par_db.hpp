@@ -69,9 +69,11 @@ class ParDB : public PandoParticipant {
 
         ParDBThread<PandoResponder> responder_;
 
+        bool skip_group_filters_ = false;
+
     public:
         /** @brief Initialize the parallel DB */
-        ParDB(ZMQAddress addr, size_t sz) :
+        ParDB(ZMQAddress addr, size_t sz, bool skip_group_filters=false) :
                 PandoParticipant(addr, true),
                 db_refs_(this,
                     s_ref_add_entry,
@@ -87,7 +89,8 @@ class ParDB : public PandoParticipant {
                 sync_recv_at_barrier_(0),
                 local_sent_dist_(0),
                 local_recv_dist_(0),
-                responder_(addr + RESPONDER_LOCALNUM_OFFSET) {
+                responder_(addr + RESPONDER_LOCALNUM_OFFSET),
+                skip_group_filters_(skip_group_filters) {
             sub(PROCESS);
             sub(ALGPROCESS);
             sub(END_BARRIER);
@@ -95,6 +98,8 @@ class ParDB : public PandoParticipant {
             sub(INSTALL_FILTER);
             sub(CLEAR_FILTERS);
             sub(EXPORT_DB);
+
+            if (skip_group_filters_) db_.disable_group_filters();
         }
         ParDB(ZMQAddress addr) : ParDB(addr, 2ull*(1ull<<29)) { }
 
@@ -601,6 +606,9 @@ class ParDB : public PandoParticipant {
                 sync_sent_dist_[addr] += count;
             }
             
+            #ifdef VERBOSE
+            cerr << "sync_sent_dist_count_ = " << sync_sent_dist_count_ + 1 << ", num neighbors = " << num_neighbors() << endl;
+            #endif
             if (++sync_sent_dist_count_ == num_neighbors()) {
                 // We have received all sent distributions, and can distribute
                 // them, beginning the next stage of the barrier
@@ -640,6 +648,9 @@ class ParDB : public PandoParticipant {
         }
 
         void check_at_barrier() {
+            #ifdef VERBOSE
+            cerr << "local_sent_dist_ = " << local_sent_dist_ << ", local_recv_dist_ = " << local_recv_dist_  << endl;
+            #endif
             if (local_sent_dist_ == local_recv_dist_) {
                 waiting_for_barrier_ = false;
 
@@ -663,6 +674,9 @@ class ParDB : public PandoParticipant {
         }
 
         void recv_at_barrier([[maybe_unused]] zmq_socket_t sock, [[maybe_unused]] const char* data, [[maybe_unused]] const char* end) {
+            #ifdef VERBOSE
+            cerr << "sync_recv_at_barrier_ = " << sync_recv_at_barrier_ + 1 << ", num_neighbors = " << num_neighbors() << endl;
+            #endif
             if (++sync_recv_at_barrier_ == num_neighbors()) {
                 // Everyone has gotten to the barrier
                 // The barrier is now over
@@ -676,7 +690,13 @@ class ParDB : public PandoParticipant {
 
         virtual void start_db_process() {
             // Now, actually process the DB
+            #ifdef VERBOSE
+            cerr << "about to process filters" << endl;
+            #endif
             local_process_again_ = db_.process();
+            #ifdef VERBOSE
+            cerr << "finished process filters" << endl;
+            #endif
 
             finish_db_process();
         }
@@ -693,7 +713,13 @@ class ParDB : public PandoParticipant {
         }
         void end_barrier_stage_processed() {
             state_ = STAGE_CLOSING;
+            #ifdef VERBOSE
+            cerr << "starting stage close" << endl;
+            #endif
             db_.stage_close();
+            #ifdef VERBOSE
+            cerr << "finished stage close" << endl;
+            #endif
 
             // Wait for the next barrier
             start_barrier_wait();
@@ -718,8 +744,12 @@ class ParDB : public PandoParticipant {
                     broadcast_process();
                 } else {
                     // move everyone into the alg db process
+                    if (skip_group_filters_) has_alg_processed_ = true;
                     if (!has_alg_processed_) {
                         has_alg_processed_ = true;
+                        #ifdef VERBOSE
+                        cerr << "about to broadcast an algprocess message" << endl;
+                        #endif
                         broadcast_algprocess();
                     }
                 }
@@ -804,14 +834,18 @@ class ParDB : public PandoParticipant {
             sent_distribution_.clear();
 
             // Proceed to the next state, depending on current state
-            if (state_ == STAGE_BEGIN)
+            if (state_ == STAGE_BEGIN) {
                 end_barrier_stage_begin();
-            else if (state_ == STAGE_PROCESSED)
+            }
+            else if (state_ == STAGE_PROCESSED) {
                 end_barrier_stage_processed();
-            else if (state_ == STAGE_CLOSING)
+            }
+            else if (state_ == STAGE_CLOSING) {
                 end_barrier_stage_closing();
-            else if (state_ == STAGE_ALG_PROCESS)
+            }
+            else if (state_ == STAGE_ALG_PROCESS) {
                 end_barrier_stage_alg_process();
+            }
             else throw runtime_error("End barrier at unknown stage");
         }
 
@@ -956,8 +990,12 @@ class ParDB : public PandoParticipant {
 
                 // We can only process if we are in a state of having finished
                 // our process() call, and currently closing the stage
-                if (state_ == STAGE_CLOSING) db_.add_tag_to_entry(key, tag);
-                else db_.stage_add_tag_worker(key, tag);
+                if (state_ == STAGE_CLOSING) {
+                    db_.add_tag_to_entry(key, tag);
+                }
+                else {
+                    db_.stage_add_tag_worker(key, tag);
+                }
             } else {
                 // If not, simply forward to the owner
                 if (state_ != PRELOAD) throw runtime_error("Unimplemented");
@@ -1201,7 +1239,10 @@ class ParDB : public PandoParticipant {
                 vertices_to_send[agent];
             }
 
-            auto ret_entry_keys = db_.keys();
+            vector<dbkey_t> ret_entry_keys;
+            if (!skip_group_filters_) {
+                ret_entry_keys = db_.keys();
+            }
             for (auto & k : ret_entry_keys) {
                 // Get the address of the host that owns k.b (should always be "us") and k.c
                 dbkey_t lookup_key_b {k.a, k.b, 0};

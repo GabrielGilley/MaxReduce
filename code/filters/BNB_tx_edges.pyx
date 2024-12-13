@@ -4,8 +4,8 @@
 from filter_lib cimport *
 from ETH_BASED_tx_edges cimport *
 
-crypto_tag = "ETH"
-filter_name = crypto_tag + "_tx_edges"
+crypto_tag = "BNB"
+filter_name = crypto_tag + "_tx_edges_python"
 filter_done_tag = filter_name + ":done"
 filter_fail_tag = filter_name + ":fail"
 

@@ -125,9 +125,12 @@ class PandoMapClient : public ZMQRequester {
             send(msg, msg_size);
 
             ZMQMessage resp = read();
+            const char* resp_data = resp.data();
 
-            const char *resp_data = resp.data();
-            const char *resp_end = resp.end();
+            size_t recvd_msg_size;
+            unpack_single(resp_data, recvd_msg_size);
+
+            const char *resp_end = resp_data + recvd_msg_size - sizeof(size_t);;
 
             vector<DBEntry<>> entries;
             entries.reserve(1ull<<16);

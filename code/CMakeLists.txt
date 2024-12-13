@@ -28,6 +28,9 @@ if (NOT EXISTS ${CMAKE_BINARY_DIR}/CMakeCache.txt)
     endif()
 endif()
 
+# Use these two lines instead of the next two to compile with address sanitizer
+#set(CMAKE_CXX_FLAGS_DEBUG "-fsanitize=address -fsanitize=leak -g -DDEBUG -O0")
+#set(CMAKE_CXX_FLAGS_RELEASE "-fsanitize=address -fsanitize=leak -g -O3 -march=native")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG -O0")
 set(CMAKE_CXX_FLAGS_RELEASE "-g -O3 -march=native")
 
@@ -52,6 +55,11 @@ SET(ABSL_PROPAGATE_CXX_STD ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 add_subdirectory(thirdparty/abseil-cpp)
 set(CMAKE_POSITION_INDEPENDENT_CODE FALSE)
+
+option(VERBOSE "Enable verbose output" OFF)
+if (VERBOSE)
+    add_definitions(-DVERBOSE)
+endif()
 
 # Add Rust as a dependency
 set(Rust_COMPILER /usr/bin/rustc)

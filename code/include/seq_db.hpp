@@ -158,9 +158,24 @@ class SeqDB {
 
         bool run_filters_() {
             bool filter_ran = false;
-            auto entries = db_.retrieve_all_entries();
+            auto keys = db_.keys();
+            size_t i = 0;
+            size_t num_keys [[maybe_unused]]  = keys.size(); // unused w/o verbosity
+
+            // limit how many filters we run before a stage close to help with memory usage
+            size_t MAX_FILTERS_TO_RUN = 100000;
+            size_t num_filters_run = 0;
+
+
             // Iterate through the database
-            for (auto & entry : entries) {         // TODO : replace this with a C++ iterator that automatically "batches" behind the scene
+            for (auto & key : keys) {         // TODO : replace this with a C++ iterator that automatically "batches" behind the scene
+                auto entry = db_.retrieve(key); //TODO also batch retrievals
+                ++i;
+                #ifdef VERBOSE
+                if (i % 10000 == 0) {
+                    cerr << "I have processed " << i << "/" <<  num_keys << " entries and run " << num_filters_run << " filters"  << endl;
+                }
+                #endif
                 // @TODO profile to determine if this needs to be optimized out.
                 //       this costs (|F|*|E|)
                 for (auto & [filter_name, filter] : installed_filters_) {
@@ -180,11 +195,23 @@ class SeqDB {
                     if (filter->should_run(access)) {
                         filter_ran = true;
                         filter->run(access);
+                        ++num_filters_run;
                     }
 
                     delete access;
                 }
+
+                if (num_filters_run > MAX_FILTERS_TO_RUN) {
+                    #ifdef VERBOSE
+                    cerr << "breaking early due to max filter run limit" << endl;
+                    #endif
+                    break;
+                }
             }
+
+            #ifdef VERBOSE
+            cerr << "done processing" << endl;
+            #endif
 
             return filter_ran;
         }
@@ -219,7 +246,7 @@ class SeqDB {
         }
 
         ~SeqDB() {
-            Py_Finalize();
+            Py_FinalizeEx();
         }
 
         /** @brief Build a SeqDB from an input file with a DB size */
@@ -328,11 +355,12 @@ class SeqDB {
                 // if the entries are different, or if either entry has the
                 // "MERGE_STRATEGY=FORCE_MERGE" tag, then concatenate them
                 bool should_concat = e != *entry;
-                should_concat |= e.has_tag(MERGE_STRATEGY_FORCE);
-                should_concat |= entry->has_tag(MERGE_STRATEGY_FORCE);
+                bool force_merge = e.has_tag(MERGE_STRATEGY_FORCE);
+                force_merge |= entry->has_tag(MERGE_STRATEGY_FORCE);
+                should_concat |= force_merge;
 
                 if (should_concat)
-                    *entry = concat_entries(&e, entry);
+                    *entry = concat_entries(&e, entry, force_merge);
             }
         }
 
@@ -349,16 +377,27 @@ class SeqDB {
             db_.insert_multiple(entries);
         }
 
-        DBEntry<> concat_entries(DBEntry<>* e1, DBEntry<>* e2) {
+        DBEntry<> concat_entries(DBEntry<>* e1, DBEntry<>* e2, bool force_merge=false) {
             DBEntry<> new_entry;
             new_entry.value() = e1->value() + '\n' + e2->value();
+
+            #ifdef VERBOSE
+            cerr << "MERGING entries, new size = " << new_entry.value().size() << endl;
+            #endif
             //Assume e1 and e2 have the same key
             dbkey_t new_key = e1->get_key();
             new_entry.set_key(new_key);
+
             vector<string> tag_union;
-            auto e1_tags = e1->tags();
-            auto e2_tags = e2->tags();
-            set_union(e1_tags.begin(), e1_tags.end(), e2_tags.begin(), e2_tags.end(), inserter(tag_union, tag_union.begin()));
+            if (force_merge) {
+                // if we are force merging, assume they have the same tags TODO is this okay? It might be an optimization
+                auto & e1_tags = e1->tags();
+                tag_union.assign(e1_tags.begin(), e1_tags.end());
+            } else {
+                auto e1_tags = e1->tags();
+                auto e2_tags = e2->tags();
+                set_union(e1_tags.begin(), e1_tags.end(), e2_tags.begin(), e2_tags.end(), inserter(tag_union, tag_union.begin()));
+            }
             tag_union.push_back("MERGED");
             for (auto &tag : tag_union) {
                 new_entry.add_tag(tag);
@@ -384,11 +423,12 @@ class SeqDB {
                 // if the entries are different, or if either entry has the
                 // "MERGE_STRATEGY=FORCE_MERGE" tag, then concatenate them
                 bool should_concat = new_entries_it->second != entry;
-                should_concat |= entry.has_tag(MERGE_STRATEGY_FORCE);
-                should_concat |= new_entries_it->second.has_tag(MERGE_STRATEGY_FORCE);
+                bool force_merge = entry.has_tag(MERGE_STRATEGY_FORCE);
+                force_merge |= new_entries_it->second.has_tag(MERGE_STRATEGY_FORCE);
+                should_concat |= force_merge;
 
                 if (should_concat) {
-                    entry = concat_entries(&(new_entries_it->second), &entry);
+                    entry = concat_entries(&(new_entries_it->second), &entry, force_merge);
                     new_entries_it->second = move(entry);
                 }
             } else

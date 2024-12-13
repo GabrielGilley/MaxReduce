@@ -34,9 +34,9 @@ TEST(etl_token_tx) {
 TEST(etl_token_tx_merge) {
     SeqDB db;
 
-    string block_1 = "token_address:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2\ntx_hash:0x41e49f1e174d991a9c4e690a2c11b2069cd3ead9ae458946214fba06e6c1c7a0\nvalue:198250000000000000\nblock:14400000\nfrom_address:0xdef1c0ded9bec7f1a1670819833240f027b25eff\nto_address:0xc0bf97bffa94a50502265c579a3b7086d081664b";
-    string block_2 = "token_address:0x990f341946a3fdb507ae7e52d17851b87168017c\ntx_hash:0x41e49f1e174d991a9c4e690a2c11b2069cd3ead9ae458946214fba06e6c1c7a0\nvalue:3271250784691066588\nblock:14400000\nfrom_address:0xc0bf97bffa94a50502265c579a3b7086d081664b\nto_address:0x74de5d4fcbf63e00296fd95d33236b9794016631";
-    string block_3 = "token_address:0x990f341946a3fdb507ae7e52d17851b87168017c\ntx_hash:0x41e49f1e174d991a9c4e690a2c11b2069cd3ead9ae458946214fba06e6c1c7a0\nvalue:3271250784691066588\nblock:14400000\nfrom_address:0x74de5d4fcbf63e00296fd95d33236b9794016631\nto_address:0x9db7205741d8caf463bce4836911b86e09a7be93";
+    string block_1 = "token_address:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2\ntransaction_hash:0x41e49f1e174d991a9c4e690a2c11b2069cd3ead9ae458946214fba06e6c1c7a0\nvalue:198250000000000000\nblock:14400000\nfrom_address:0xdef1c0ded9bec7f1a1670819833240f027b25eff\nto_address:0xc0bf97bffa94a50502265c579a3b7086d081664b";
+    string block_2 = "token_address:0x990f341946a3fdb507ae7e52d17851b87168017c\ntransaction_hash:0x41e49f1e174d991a9c4e690a2c11b2069cd3ead9ae458946214fba06e6c1c7a0\nvalue:3271250784691066588\nblock:14400000\nfrom_address:0xc0bf97bffa94a50502265c579a3b7086d081664b\nto_address:0x74de5d4fcbf63e00296fd95d33236b9794016631";
+    string block_3 = "token_address:0x990f341946a3fdb507ae7e52d17851b87168017c\ntransaction_hash:0x41e49f1e174d991a9c4e690a2c11b2069cd3ead9ae458946214fba06e6c1c7a0\nvalue:3271250784691066588\nblock:14400000\nfrom_address:0x74de5d4fcbf63e00296fd95d33236b9794016631\nto_address:0x9db7205741d8caf463bce4836911b86e09a7be93";
     {
         DBEntry<> e;
         e.clear().add_tag("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", "ethereum_etl_token_transfer").value() = block_1;

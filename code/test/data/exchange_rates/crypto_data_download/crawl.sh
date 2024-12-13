@@ -22,6 +22,7 @@ download Bittrex_TUSDUSD
 download CEX_USDCUSD
 download CEX_USDTUSD
 download Bitfinex_ZRXUSD
+download CEX_MATICUSD
 
 # CANNOT FIND EXCHANGE RATES FOR
 # * POLY
