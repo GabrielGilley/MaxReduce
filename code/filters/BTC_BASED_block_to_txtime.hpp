@@ -1,0 +1,78 @@
+#include "helpers.hpp"
+#include <sstream>
+
+using namespace std;
+using namespace pando;
+using namespace rapidjson;
+
+void fail_(const DBAccess *access, const char* filter_fail_tag) {
+    cerr << "[ERROR] unable to parse JSON in entry" << endl;
+    access->add_tag.run(&access->add_tag, filter_fail_tag);
+}
+
+void btc_based_block_to_txtime(const DBAccess* access, const char* crypto_tag, const char* filter_fail_tag, const char* filter_done_tag) {
+    const uint32_t crypto_id = get_blockchain_key(crypto_tag);
+
+    // The value should be a valid JSON string
+    Document d;
+    d.Parse(access->value);
+
+    if (d.HasParseError()) return fail_(access, filter_fail_tag);
+
+    // Find the transactions in the block
+    if (!d.HasMember("tx")) return fail_(access, filter_fail_tag);
+    auto &txs = d["tx"];
+    if (!txs.IsArray()) return fail_(access, filter_fail_tag);
+
+    // Get the time
+    if (!d.HasMember("time")) return fail_(access, filter_fail_tag);
+    if (!d["time"].IsInt()) return fail_(access, filter_fail_tag);
+    uint32_t timestamp = d["time"].GetInt();
+    string ts_str = to_string(timestamp);
+
+    // Iterate through each transaction
+    for (auto & tx : txs.GetArray()) {
+        // Get the tx ID
+        auto txid = tx["txid"].GetString();
+
+        // Create new DB entries for each transaction
+        const char* new_tags[] = {crypto_tag, "txtime", txid, ""};
+        const char* new_value = ts_str.c_str();
+
+        chain_info_t chain_info = pack_chain_info(crypto_id, TXTIME_KEY, 0);
+        vtx_t src_key;
+        string txid_s; txid_s.assign(txid);
+        stringstream ss;
+        ss << txid_s.substr(0,15);
+        ss >> hex >> src_key;
+        dbkey_t new_key { chain_info, src_key, 0 };
+
+        access->make_new_entry.run(&access->make_new_entry, new_tags, new_value, new_key);
+    }
+
+    // Add a tag indicating parsing was successful
+    access->add_tag.run(&access->add_tag, filter_done_tag);
+}
+
+bool should_run_btc_based_block_to_txtime(const DBAccess* access, const char* crypto_tag, const char* filter_fail_tag, const char* filter_done_tag) {
+    auto tags = access->tags;
+    bool found_crypto = false;
+    bool found_block = false;
+
+    //make sure the entry includes "BTC" and "block" but not
+    //"BTC_block_to_txtime:done" or "BTC_block_to_txtime:fail"
+    while ((*tags)[0] != '\0') {
+        if (string(*tags) == crypto_tag)
+            found_crypto = true;
+        if (string(*tags) == "block")
+            found_block = true;
+        if (string(*tags) == filter_done_tag)
+            return false;
+        if (string(*tags) == filter_fail_tag)
+            return false;
+        ++tags;
+    }
+    if (found_crypto && found_block)
+        return true;
+    return false;
+}
