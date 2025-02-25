@@ -1,3 +1,0 @@
-FROM pando_python
-
-ENTRYPOINT ["python3", "-m", "jupyter", "notebook"]
