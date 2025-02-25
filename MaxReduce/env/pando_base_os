@@ -1,0 +1,4 @@
+FROM alpine:3.18
+
+#For gdb
+ENV SHELL=/bin/sh

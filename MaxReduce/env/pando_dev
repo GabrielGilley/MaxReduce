@@ -1,0 +1,10 @@
+FROM pando_base_os
+
+COPY requirements_build.txt .
+
+RUN apk add build-base boost boost-dev cmake python3-dev py3-pybind11 py3-pybind11-dev py3-pip zeromq zeromq-dev gdb ncurses-dev valgrind git curl cargo rustfmt
+ENV pybind11_DIR=/usr/lib/python3.11/site-packages/pybind11/share/cmake/pybind11
+RUN python3 -m pip install -r requirements_build.txt
+
+RUN mkdir /scratch
+VOLUME /scratch

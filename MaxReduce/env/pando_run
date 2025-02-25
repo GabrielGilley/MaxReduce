@@ -1,0 +1,6 @@
+FROM pando_build
+
+ENV https_proxy=
+ENV http_proxy=
+ENV HTTPS_PROXY=
+ENV HTTP_PROXY=

@@ -1,0 +1,12 @@
+FROM pando_build
+
+COPY requirements_python.txt .
+RUN apk add python3-dev py3-pybind11 py3-pybind11-dev py3-pip zeromq zeromq-dev build-base linux-headers
+RUN python3 -m pip install -r requirements_python.txt
+
+ENV https_proxy=
+ENV http_proxy=
+ENV HTTPS_PROXY=
+ENV HTTP_PROXY=
+
+ENV PYTHONPATH=/usr/local/bin/
