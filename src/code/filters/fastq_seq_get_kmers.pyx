@@ -49,6 +49,8 @@ cdef public void run_internal(const DBAccess* access, const uint k):
         # kmer_ascii = [ord(char) for char in s] 
         # or maybe A = 0, C = 1, ..., T = 3
         # key of ACGT = 0123
+        # above approaches would get really big. could do a 256 bit hash of kmer
+        # convert it to int and use it as key
         new_key = dbkey_t(d["id"], k, counter)
         new_value = "kmer=" + kmer + "\n" + "quality=" + qmer + "\n"
         
