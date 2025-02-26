@@ -13,8 +13,6 @@ config.cfg exists for static paths. We'll have to put data directory in there. P
 ## Issues
 Completely untested. Snake will terminate immediately if the results files exist. After the first iteration, if you try to run again it will stop because the results files exist, so you'll have to move the files after each run or modify script.sh or some other solution.
 
-jupyter\_sif may not work with a regular python file, in which case the snakefile would be modified to say jupyter run.exe par-script.ipynb. and rename par-script.py to par-script.ipynb
-
 There may be a pathing issue with the slurm script being in experiments instead of src (pando repo). NOTE that pardb.sbatch is modified in the experiment to allow for configurable nodes instead of just all of them, which is needed for scalability.
 
 ## par-script.py
