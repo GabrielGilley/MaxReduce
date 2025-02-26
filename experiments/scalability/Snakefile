@@ -1,0 +1,18 @@
+NODES = [8, 16, 32, 64]
+
+rule all:
+    input:
+        expand("results/scalability_{nodes}.log", nodes=NODES)
+
+rule run_scalability_test:
+    output:
+        "results/scalability_{nodes}.log"
+
+    params:
+        nodes="{nodes}"
+
+    shell:
+        """
+        sbatch -N {params.nodes} pardb.sbatch
+        """
+
