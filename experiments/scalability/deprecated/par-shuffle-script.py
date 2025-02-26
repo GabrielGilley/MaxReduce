@@ -32,6 +32,9 @@ client = pando_api.ParDBClient(IP)
 # Add filter directory
 client.add_filter_dir(os.path.join(BUILD_DIR, 'filters'))
 
+# Import data. This will need to be modified depending on how JSON gets implemented
+client.import_db(DATA_DIR)
+
 # We only need to force arbitrary joins in the tx extraction
 client.install_filter('python_BTC_block_to_tx_arbitrary_joins');
 
