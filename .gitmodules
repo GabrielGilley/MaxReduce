@@ -1,0 +1,3 @@
+[submodule "experiments/experiments/wgsim-data-creation"]
+	path = experiments/experiments/wgsim-data-creation
+	url = git@github.com:Matt-Gaston/wgsim-W-Script.git
