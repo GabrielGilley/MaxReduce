@@ -2,12 +2,10 @@
 from timeit import default_timer as timer
 import sys
 import os
-
-# Globals
 import argparse
 
 # Argument Parser
-parser = argparse.ArgumentParser(description="Process and time database operations.")
+parser = argparse.ArgumentParser(description="")
 parser.add_argument("--build-dir", type=str, required=True, help="Path to the build directory")
 parser.add_argument("--results-dir", type=str, required=True, help="Path to directory where to save results")
 parser.add_argument("--data-dir", type=str, required=True, help="Path to the data directory")
