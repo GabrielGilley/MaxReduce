@@ -8,4 +8,7 @@ RefGenome="../data/chr13v2.0.fa"
 
 OutputLoc="../data/wgsim\_out/"
 
+OutputFname="chr13reads"
+
+#### Run
 run genReads.sh
