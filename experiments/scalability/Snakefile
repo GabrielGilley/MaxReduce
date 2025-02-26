@@ -20,8 +20,9 @@ rule run_scalability_test:
         sbatch -N {wildcards.nodes} pardb.sbatch
         host_out=$(host "$HEAD_NODE".100g)
         IFS=' ' read -r -a array <<< "$host_out"
-        IP="${array[@]: -1},0"        
-        "$SIFS_DIR"/pando_top.sif "$IP"
+        IP="${array[@]: -1},0"
+        ssh -L8888:localhost:8888 en17        
+        "$SIFS_DIR"/pando_python.sif "$IP"
         python3 par-script.py --build-dir "$BUILD_DIR" --filters "{params.filters}" --ip "$CLIENT_ADDRESS" --results-dir "$RESULTS_DIR" --data-dir "$DATA_DIR" --test-name "{wildcards.name}_{wildcards.nodes}" ||
         {
             exit 1
