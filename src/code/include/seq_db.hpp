@@ -268,15 +268,23 @@ class SeqDB {
             // Keep track of the DB file parsing state
             parse_state_ state = NOENTRY;
 
+            pigo::ROFile in_file {fn};
+            pigo::FileReader reader = in_file.reader();
+
             // Open the file
-            if (ifstream in_file {fn}) {
-                // Read the file line-by-line
-                string line;
+            if (reader.good()) {
 
                 // Current entry to insert
                 DBEntry<> entry;
+                while (reader.good()) {
+                    // Read the file line-by-line
+                    pigo::FileReader line_end_reader = reader;
+                    line_end_reader.move_to_eol();
 
-                while (getline(in_file, line)) {
+                    string line(reader.d, line_end_reader.d - reader.d);
+
+                    reader = line_end_reader + 1;
+
                     // Check for different database action
                     if (state == NOENTRY) {
                         if (line == "TAGS") {
