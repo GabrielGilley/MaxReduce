@@ -23,6 +23,8 @@ It takes filters as a text file where each is on its own line. this is just to m
 ## Snakefile
 Supposed to run the slurm script for each node count in the line 2 list.
 
+Note pip install snakefile and pip install 'pulp<2.8' need to be run
+
 ## Weak scalability
 Exact same code as strong scalability but we'll point it to smaller data directories. Whatever we decide (1 TB max maybe) for the 64 node cluster needs to be scaled down. Assuming 1024 divisions instead of 1000 (TiB vs TB), its node count \* 16 GiB. so The following:
 
