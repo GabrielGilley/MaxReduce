@@ -15,7 +15,7 @@ cdef filter_fail = "extract_kmers_fastq:fail"
 # For space efficiency we could encode nucleotides in as few as 2 bits, 3 with RNA support
 # Instead of using an entire byte as a char
 
-cdef public void run_internal(const DBAccess* access, const uint k):
+cdef public void run_internal(const DBAccess* access):
     import json
 
     d = json.loads(access.value)
