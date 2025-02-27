@@ -531,6 +531,7 @@ class ParDB : public PandoParticipant {
                 cerr << "[ERROR] directory " << dir << " did not exist" << endl;
             } else {
                 for (const auto & entry : std::filesystem::directory_iterator(dir)) {
+                    if (entry.is_directory()) continue;
                     auto& n_req = *n_it;
 
                     string full_fn = entry.path().string();
@@ -565,7 +566,12 @@ class ParDB : public PandoParticipant {
         }
 
         void import_db(string fn) {
-            db_.import_db(fn);
+            string suffix = ".txt";
+            if (suffix == fn.substr(fn.length() - suffix.length(), fn.length())) {
+                db_.add_db_file(fn);
+            } else {
+                db_.import_db(fn);
+            }
         }
 
         /** @brief Begin waiting for a barrier */

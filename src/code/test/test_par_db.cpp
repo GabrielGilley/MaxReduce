@@ -1067,6 +1067,28 @@ TEST(query_multiple_tags) {
 
 }
 
+TEST(import_txt_db) {
+    elga::ZMQAddress db1_addr { "127.0.0.1", g_idx+=inc_amount };
+    ParDBThread<ParDB> db1 { db1_addr };
+    ParDBClient c1 { db1_addr };
+
+    elga::ZMQAddress db2_addr { "127.0.0.1", g_idx+=inc_amount };
+    ParDBThread<ParDB> db2 { db2_addr };
+    ParDBClient c2 { db2_addr };
+
+    c1.add_neighbor(db2_addr);
+    this_thread::sleep_for(chrono::milliseconds(50));
+    EQ(c1.num_neighbors(), 2);
+    
+    c1.import_db(data_dir);
+    this_thread::sleep_for(chrono::milliseconds(100));
+
+    EQ(c1.db_size() + c2.db_size(), 11);
+
+
+    TEST_PASS
+}
+
 TESTS_BEGIN
     elga::ZMQChatterbox::Setup();
 
@@ -1101,6 +1123,7 @@ TESTS_BEGIN
     RUN_TEST(subscribe_to_entry_multiple)
     RUN_TEST(get_entry_by_key)
     RUN_TEST(get_entry_by_key_multiple)
+    RUN_TEST(import_txt_db)
 
 
     elga::ZMQChatterbox::Teardown();
