@@ -11,6 +11,7 @@ cimport Pando
 # Could change name based on k variable or could have filter take a list of k's to extract
 cdef filter_done = "extract_kmers_fastq:done"
 cdef filter_fail = "extract_kmers_fastq:fail"
+cdef k = 31
 
 # For space efficiency we could encode nucleotides in as few as 2 bits, 3 with RNA support
 # Instead of using an entire byte as a char
