@@ -19,16 +19,15 @@ PANDO_MESH_ENTRY="$ip,0"
 
 SCRIPT_PATH=$(scontrol show job $SLURM_JOBID | awk -F= '/Command=/{print $2}')
 SCRIPT_DIR=$(dirname $SCRIPT_PATH)
-PANDO_PARDB_BIN=$SCRIPT_DIR/../sifs/pando_pardb.sif
+PANDO_PARDB_BIN=$SCRIPT_DIR/../../src/sifs/pando_pardb.sif
 
 PANDO_BIND_IP_FILE=/ip
 
-NODES=$1  # Get node count from snakemake
 
 echo START
 date
 
-srun --nodes=$NODES --unbuffered bash pardb.internal $PANDO_MESH_ENTRY $PANDO_PARDB_BIN $PANDO_BIND_IP_FILE
+srun --unbuffered bash pardb.internal $PANDO_MESH_ENTRY $PANDO_PARDB_BIN $PANDO_BIND_IP_FILE
 
 echo FINISH
 date
