@@ -1,0 +1,3 @@
+[submodule "experiments/data/experiments/data/wgsim-W-Script"]
+	path = experiments/data/experiments/data/wgsim-W-Script
+	url = git@github.com:Matt-Gaston/wgsim-W-Script.git
