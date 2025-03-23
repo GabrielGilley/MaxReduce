@@ -3,57 +3,64 @@ from timeit import default_timer as timer
 import sys
 import os
 import argparse
-
+import time
 # Argument Parser
 parser = argparse.ArgumentParser(description="")
-parser.add_argument("--build_dir", type=str, required=False, help="Path to the build directory")
-parser.add_argument("--results_dir", type=str, required=False, help="Path to directory where to save results")
-parser.add_argument("--data_dir", type=str, required=False, help="Path to the data directory")
-parser.add_argument("--test_name", type=str, required=False, help="Name of the test run")
-parser.add_argument("--ip", type=str, required=False, help="IP,ID of the ParDBClient")
-parser.add_argument("--filters", type=str, required=False, help="Text file with a list of filters on eachtheir own lines")
+parser.add_argument("-r", "--results_dir", type=str, required=False, help="Path to directory where to save results")
+parser.add_argument("-d", "--data_dir", type=str, required=True, help="Path to the data directory")
+parser.add_argument("-n", "--test_name", type=str, required=True, help="Name of the test run")
+parser.add_argument("-m", "--mesh", type=str, required=True, help="IP,ID of the ParDBClient")
+parser.add_argument("-f", "--filters", type=str, required=True, help="Text file with a list of filters on each their own lines")
 
 # Parse arguments
 args = parser.parse_args()
-BUILD_DIR = args.build_dir
-RESULTS_DIR = args.results_dir
+RESULTS_DIR = args.results_dir or "./"
 DATA_DIR = args.data_dir
 TEST_NAME = args.test_name
-IP = args.ip
+MESH = args.mesh
 FILTER_FILE = args.filters
 
-# sys.path.append(os.path.join(BUILD_DIR, 'pybind11'))
-# sys.path.append("../../src/code/build/pybind11")
-import pando_api
-# os.makedirs("results", exist_ok=True)
-print("Big ol' test")
-# Create client
-client = pando_api.ParDBClient("10.100.4.88,0")
-print("client started")
-# Add filter directory
+import pando
+client = pando.ParDBClient(MESH)
+print("Started Client with Mesh:", MESH)
+print("\tAdding Filter Directory")
+client.add_filter_dir('/ascldap/users/grgill/pandos/Pando/code/build/filters')
+print("\tBegin Data Import")
+client.import_db(DATA_DIR)
+print("\t\tWaiting for 5 seconds...")
+time.sleep(5)
+print("\t\tBeginning Import Loop")
 
-urrent_directory = os.getcwd()
-print(urrent_directory)
-client.add_filter_dir('../../src/code/build/filters')
-print("filters added")
-# Import data. This will need to be modified depending on how JSON gets implemented
-client.import_db("/cscratch/1024G")
-print("db imported")
+while True:
+    last_size = pando.db_size_total(client)    
+    time.sleep(10)
+    curr_size = pando.db_size_total(client)
+    if curr_size != 0 and curr_size == last_size:
+        print("\t\tBreaking out")
+        break
+
+print("\tData Imported")
+print("\tInstalling Filters from", FILTER_FILE)
 # Install all filters
-# with open(FILTER_FILE, "r") as readable:
-#    for line in readable:
-#        client.install_filter(line.strip())  # Strip newline and carriage return
-client.install_filter("BTC_block_to_tx")
-client.install_filter("BTC_block_to_txtime")
-client.install_filter("BTC_tx_vals")
-# Begin test
+with open(FILTER_FILE, "r") as readable:
+   for line in readable:
+       filter_name = line.strip()
+       if "BTC_tx_vals" in filter_name:
+           print("\t\tAdding bitcoin exchange rate")
+           client.add_db_file("../../src/code/test/data/exchange_rates/bitcoin_exchange_rate")
+       print("\t\tInstalling Filter:", filter_name)
+       client.install_filter(filter_name)  # Strip newline and carriage return
+print("\tBegin Data Processing")
 start = timer()
 client.process()  # Async
+time.sleep(1)
 while client.processing():
     time.sleep(10) 
 end = timer()
-
+time_taken = str(end-start)
+print("\tEnd Data Processing: ", time_taken)
 # Save results
-with open(os.path.join(RESULTS_DIR, TEST_NAME + ".csv"), "a") as file:
-    file.write(str(end - start) + ",")
-
+filename = os.path.join(RESULTS_DIR, TEST_NAME) + ".csv" 
+with open(filename, "a") as file:
+    file.write(time_taken + ",")
+print("\tPython Script Complete")
