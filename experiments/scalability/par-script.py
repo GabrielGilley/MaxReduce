@@ -20,25 +20,40 @@ TEST_NAME = args.test_name
 MESH = args.mesh
 FILTER_FILE = args.filters
 
+def wait_for_stable_mesh(client):
+    num_neighbors = 0
+    while True:
+        time.sleep(2)
+        n_t = client.num_neighbors()
+        if n_t == num_neighbors:
+            print("Mesh stabilized")
+            break
+        else:
+            num_neighbors = n_t
+
 import pando
 client = pando.ParDBClient(MESH)
 print("Started Client with Mesh:", MESH)
+wait_for_stable_mesh(client)
 print("\tAdding Filter Directory")
-client.add_filter_dir('/ascldap/users/grgill/pandos/Pando/code/build/filters')
+# client.add_filter_dir('/ascldap/users/grgill/MaxReduce/src/code/build/filters')
+client.add_filter_dir("/filters")
 print("\tBegin Data Import")
 client.import_db(DATA_DIR)
 print("\t\tWaiting for 5 seconds...")
 time.sleep(5)
 print("\t\tBeginning Import Loop")
 
-while True:
-    last_size = pando.db_size_total(client)    
-    time.sleep(10)
-    curr_size = pando.db_size_total(client)
-    if curr_size != 0 and curr_size == last_size:
-        print("\t\tBreaking out")
-        break
+def wait_for_stable_db(client):
+    while True:
+        last_size = pando.db_size_total(client)    
+        time.sleep(10)
+        curr_size = pando.db_size_total(client)
+        if curr_size != 0 and curr_size == last_size:
+            print("\t\tBreaking out")
+            break
 
+wait_for_stable_db(client)
 print("\tData Imported")
 print("\tInstalling Filters from", FILTER_FILE)
 # Install all filters
@@ -48,8 +63,16 @@ with open(FILTER_FILE, "r") as readable:
        if "BTC_tx_vals" in filter_name:
            print("\t\tAdding bitcoin exchange rate")
            client.add_db_file("../../src/code/test/data/exchange_rates/bitcoin_exchange_rate")
+           wait_for_stable_db(client)
+       # elif "shortread" in filter_name:
+       #    client.add_db_file("../data/fastq_pando.txt") 
        print("\t\tInstalling Filter:", filter_name)
        client.install_filter(filter_name)  # Strip newline and carriage return
+       time.sleep(3)
+
+print("sleeping before starting data processing")
+time.sleep(10)
+
 print("\tBegin Data Processing")
 start = timer()
 client.process()  # Async
