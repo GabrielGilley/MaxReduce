@@ -133,12 +133,41 @@ EOL
 # Create Hadoop directories
 $HADOOP_HOME/bin/hdfs namenode -format -force
 
-#unset HADOOP_WORKERS
 
 $HADOOP_HOME/bin/yarn --daemon start timelineserver
 
 # Start HDFS
-$HADOOP_HOME/sbin/start-dfs.sh
+# Can't just run start-dfs.sh anymore, its arguments don't work with our setup
+# of workers. So we'll just do everything manually
+#HADOOP_WORKERS= $HADOOP_HOME/sbin/start-dfs.sh
+HADOOP_LIBEXEC_DIR="${HADOOP_HOME}/libexec"
+. "${HADOOP_LIBEXEC_DIR}/hdfs-config.sh"
+NAMENODES=$("${HADOOP_HDFS_HOME}/bin/hdfs" getconf -namenodes 2>/dev/null)
+
+echo "Starting namenodes on [${NAMENODES}]"
+HADOOP_WORKERS= hadoop_uservar_su hdfs namenode "${HADOOP_HDFS_HOME}/bin/hdfs" \
+    --workers \
+    --config "${HADOOP_CONF_DIR}" \
+    --hostnames "${NAMENODES}" \
+    --daemon start \
+    namenode ${nameStartOpt}
+
+echo "Starting datanodes"
+hadoop_uservar_su hdfs datanode "${HADOOP_HDFS_HOME}/bin/hdfs" \
+    --workers \
+    --config "${HADOOP_CONF_DIR}" \
+    --daemon start \
+    datanode ${dataStartOpt}
+
+SECONDARY_NAMENODES=$("${HADOOP_HDFS_HOME}/bin/hdfs" getconf -secondarynamenodes 2>/dev/null)
+echo "Starting secondary namenodes [${SECONDARY_NAMENODES}]"
+HADDOP_WORKERS= hadoop_uservar_su hdfs secondarynamenode "${HADOOP_HDFS_HOME}/bin/hdfs" \
+  --workers \
+  --config "${HADOOP_CONF_DIR}" \
+  --hostnames "${SECONDARY_NAMENODES}" \
+  --daemon start \
+  secondarynamenode
+
 
 # Start YARN
 $HADOOP_HOME/sbin/start-yarn.sh
