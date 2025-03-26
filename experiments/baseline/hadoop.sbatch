@@ -161,7 +161,7 @@ hadoop_uservar_su hdfs datanode "${HADOOP_HDFS_HOME}/bin/hdfs" \
 
 SECONDARY_NAMENODES=$("${HADOOP_HDFS_HOME}/bin/hdfs" getconf -secondarynamenodes 2>/dev/null)
 echo "Starting secondary namenodes [${SECONDARY_NAMENODES}]"
-HADDOP_WORKERS= hadoop_uservar_su hdfs secondarynamenode "${HADOOP_HDFS_HOME}/bin/hdfs" \
+HADOOP_WORKERS= hadoop_uservar_su hdfs secondarynamenode "${HADOOP_HDFS_HOME}/bin/hdfs" \
   --workers \
   --config "${HADOOP_CONF_DIR}" \
   --hostnames "${SECONDARY_NAMENODES}" \
