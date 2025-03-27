@@ -1,0 +1,17 @@
+GetKmerCountsNFiles
+GesSuspectedBaseInReadByQuality
+HazelcastServer
+LoadKmerToDHT
+ConfirmErrorsInReads
+CorrectErrorsInReads
+ChangeBasesInReads
+
+
+
+
+GetKmerCountsNFiles
+HazelcastServer
+LoadKmerToDHT
+GetReadStat
+GetReadStat2
+GetErrorsInReads
