@@ -12,10 +12,6 @@ NUM_USERS=1000
 PRODUCT_TABLE="product_table.csv"
 USER_TABLE="user_table.csv"
 
-get_rand_product_spec() {
-    echo "$(shuf -i 1-$PRODUCT_SPEC_MAX -n 1)"
-}
-
 # First, generate a list of product IDs. We'll just make them incrementing ints
 echo "$(shuf -r -i 1-$PRODUCT_SPEC_MAX -n $NUM_PRODUCT_IDS)"  | awk '{print NR "," $0}' > "$PRODUCT_TABLE"
 
