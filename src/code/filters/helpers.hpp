@@ -1,11 +1,16 @@
 #include <iostream>
 #include <string>
+#include <sstream>
+#include <cctype>
+#include <vector>
 #include "filter.hpp"
 #include "dbkey.h"
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/error/en.h"
+
+using namespace std;
 
 float get_exchange_rate(time_t timestamp, const DBAccess *access, const char* inactive_tag, vtx_t bc_key) {
     //generate a tm object from the timestamp so we can floor the hours,
@@ -48,4 +53,68 @@ bool has_tag(const DBAccess* access, string tag) {
         ++tags;
     }
     return false;
+}
+
+void split_by_newline(string input, vector<string> * lines)
+{
+    size_t pos = 0;
+    size_t newline_pos;
+
+    // Split the string at newline characters
+    while ((newline_pos = input.find('\n', pos)) != string::npos) {
+        lines->push_back(input.substr(pos, newline_pos - pos));
+        pos = newline_pos + 1; // Move past the newline character
+    }
+    // Add the last line (after the last newline)
+    lines->push_back(input.substr(pos));
+}
+
+long long convert_wgsim_id_to_key(const string & input)
+{
+    stringstream ss(input.substr(1));
+    string part;
+    vector<string> all_parts;
+    while (getline(ss, part, '_'))
+    {
+        all_parts.push_back(part);
+    }
+
+    string important_parts = all_parts[0] + all_parts[1] + all_parts[2] + all_parts.back();
+    string numeric_string;
+    for (char c : important_parts)
+    {
+        if (isdigit(c))
+        {
+            numeric_string += c;
+        }
+    }
+    return stoll(numeric_string);
+}
+
+int nucleotide_to_bits(char nucleotide)
+{
+    switch (nucleotide)
+    {
+        case 'A': return 0b00; // 00
+        case 'C': return 0b01; // 01
+        case 'G': return 0b10; // 10
+        case 'T': return 0b11; // 11
+        case 'U': return 0b11; // account for RNA
+        default: {cerr << "invalid nucleotide" << endl; return -1;}
+    }
+}
+
+long long sequence_to_bits(const string & sequence)
+{
+    long long bit_representation = 0;
+    int single_bp = 0;
+    for (char nucleotide : sequence)
+    {
+        single_bp = nucleotide_to_bits(nucleotide);
+        if (single_bp == -1)
+            return -1;
+        bit_representation = (bit_representation << 2) | single_bp;
+    }
+
+    return bit_representation;
 }

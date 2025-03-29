@@ -23,21 +23,23 @@ FILTER_FILE = args.filters
 def wait_for_stable_mesh(client):
     num_neighbors = 0
     while True:
-        time.sleep(2)
+        time.sleep(10)
         n_t = client.num_neighbors()
         if n_t == num_neighbors:
-            print("Mesh stabilized")
+            print("\tMesh stabilized")
             break
         else:
             num_neighbors = n_t
+time.sleep(10)
 
 import pando
 client = pando.ParDBClient(MESH)
 print("Started Client with Mesh:", MESH)
+print("\tWaiting for mesh to be stable...")
 wait_for_stable_mesh(client)
 print("\tAdding Filter Directory")
-# client.add_filter_dir('/ascldap/users/grgill/MaxReduce/src/code/build/filters')
-client.add_filter_dir("/filters")
+client.add_filter_dir('/ascldap/users/grgill/MaxReduce/src/code/build/filters')
+# client.add_filter_dir("/filters")
 print("\tBegin Data Import")
 client.import_db(DATA_DIR)
 print("\t\tWaiting for 5 seconds...")
@@ -61,8 +63,9 @@ with open(FILTER_FILE, "r") as readable:
    for line in readable:
        filter_name = line.strip()
        if "BTC_tx_vals" in filter_name:
-           print("\t\tAdding bitcoin exchange rate")
+           print("\t\tAdding Bitcoin exchange rates")
            client.add_db_file("../../src/code/test/data/exchange_rates/bitcoin_exchange_rate")
+           print("\t\tEnsuring mesh is stable...")
            wait_for_stable_db(client)
        # elif "shortread" in filter_name:
        #    client.add_db_file("../data/fastq_pando.txt") 
@@ -70,7 +73,7 @@ with open(FILTER_FILE, "r") as readable:
        client.install_filter(filter_name)  # Strip newline and carriage return
        time.sleep(3)
 
-print("sleeping before starting data processing")
+print("\tWaiting 10 seconds before processing...")
 time.sleep(10)
 
 print("\tBegin Data Processing")
