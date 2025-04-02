@@ -122,6 +122,7 @@ inline bool is_random_key(dbkey_t k) {
 #define OMNI_KEY (uint16_t)37
 #define BNB_KEY (uint32_t)38
 #define MATIC_KEY (uint32_t)39
+#define PRODUCT_ENGAGEMENT_KEY (uint32_t)40
 
 /** Filter-specific Key Constants, 16 bits */
 #define TX_IN_EDGE_KEY (uint16_t)0
@@ -141,6 +142,7 @@ inline bool is_random_key(dbkey_t k) {
 #define BLOCK_NUMBER_LOOKUP_KEY (uint16_t)14
 #define TX_KEY (uint16_t)15
 #define ADDR_KEY (uint16_t)16
+#define PRODUCT_ID_KEY (uint16_t)17
 
 #define NOT_UTXO_KEY (uint16_t)0
 #define UTXO_KEY (uint16_t)1
