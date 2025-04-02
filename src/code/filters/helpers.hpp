@@ -3,6 +3,7 @@
 #include <sstream>
 #include <cctype>
 #include <vector>
+#include <algorithm>
 #include "filter.hpp"
 #include "dbkey.h"
 #include "rapidjson/document.h"
@@ -69,7 +70,7 @@ void split_by_newline(string input, vector<string> * lines)
     lines->push_back(input.substr(pos));
 }
 
-long long convert_wgsim_id_to_key(const string & input)
+string convert_wgsim_id_to_key(const string & input)
 {
     stringstream ss(input.substr(1));
     string part;
@@ -79,7 +80,7 @@ long long convert_wgsim_id_to_key(const string & input)
         all_parts.push_back(part);
     }
 
-    string important_parts = all_parts[0] + all_parts[1] + all_parts[2] + all_parts.back();
+    string important_parts = all_parts[1] + all_parts[2] + all_parts[5];
     string numeric_string;
     for (char c : important_parts)
     {
@@ -88,7 +89,7 @@ long long convert_wgsim_id_to_key(const string & input)
             numeric_string += c;
         }
     }
-    return stoll(numeric_string);
+    return numeric_string;
 }
 
 int nucleotide_to_bits(char nucleotide)

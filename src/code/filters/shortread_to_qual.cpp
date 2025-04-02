@@ -6,10 +6,6 @@ using namespace pando;
 using namespace rapidjson;
 
 #define FILTER_NAME "read_to_qual"
-#define SHORT 1
-#define SEQ 2
-#define QUAL 3
-#define KMER 15
 static const char* filter_done_tag = FILTER_NAME ":done";
 static const char* filter_fail_tag = FILTER_NAME ":fail";
 
@@ -30,14 +26,22 @@ void shortread_to_seq(const DBAccess *access, const char* filter_fail_tag, const
     split_by_newline(val, &lines);
     const char* new_tags[] = {"qual", "short", ""};
     val = lines[3];
-    val.erase(std::remove_if(val.begin(), val.end(), ::isspace), val.end());
+    val.erase(std::remove_if(val.begin(), val.end(), [](unsigned char c) { return std::isspace(c); }), val.end());
     if (val.empty())
     {
         access->add_tag.run(&access->add_tag, filter_fail_tag);
     }
     const char* new_value = val.c_str();
-    long long b_key = convert_wgsim_id_to_key(lines[0]);
-    dbkey_t new_key = {QUAL, b_key, 0};
+    string key_str = convert_wgsim_id_to_key(lines[0]);
+
+    size_t midpoint = key_str.length() / 2;
+    std::string first_half = key_str.substr(0, midpoint);
+    std::string second_half = key_str.substr(midpoint);
+
+    vtx_t b_key = stoll(first_half);
+    vtx_t c_key = stoll(second_half);
+    dbkey_t new_key = {QUAL, b_key, c_key};
+
     access->make_new_entry.run(&access->make_new_entry, new_tags, new_value, new_key);
 
     // Add a tag indicating parsing was successful

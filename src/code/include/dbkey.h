@@ -75,7 +75,11 @@ inline void unpack_chain_info(chain_info_t input, uint32_t* a, uint16_t* b, uint
 inline bool is_random_key(dbkey_t k) {
     return (((k.a >> 63) & 1) == 1);
 }
-
+/** Sequencing Key Constants, 31 bits **/
+#define SHORT (uint32_t)1
+#define SEQ (uint32_t)0
+#define QUAL (uint32_t)2
+#define KMER_COUNTS (uint32_t)3
 
 /** Blockchain Key Constants, 31 bits **/
 #define BTC_KEY (uint32_t)0

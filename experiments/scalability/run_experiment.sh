@@ -29,7 +29,7 @@ for i in {5..0}; do
 done
 
 echo "Removing... Please wait..."
-srun -N $AVAILABLE_NODE_COUNT bash -c 'rm -rf /scratch/bigspace* /tmp/elga*'
+srun -N $AVAILABLE_NODE_COUNT bash -c 'sudo rm -rf /scratch/bigspace* /tmp/elga*'
 echo "BigSpace and Elga files removed."
 
 

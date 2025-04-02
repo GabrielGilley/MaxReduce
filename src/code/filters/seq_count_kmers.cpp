@@ -1,16 +1,13 @@
 #include "helpers.hpp"
 #include <sstream>
 #include <unordered_map>
+#include <stdexcept>
 using namespace std;
 using namespace pando;
 using namespace rapidjson;
 
 #define FILTER_NAME "seq_count_kmers"
-#define SHORT 1
-#define SEQ 2
-#define QUAL 3
-#define KMER_COUNTS 4
-#define K 3
+#define K 15
 static const char* filter_done_tag = FILTER_NAME ":done";
 static const char* filter_fail_tag = FILTER_NAME ":fail";
 
@@ -27,6 +24,7 @@ void seq_count_kmers(const DBAccess *access, const char* filter_fail_tag, const 
     
     // Create new DB entries for each transaction
     string val = string(access->value);
+    val.erase(std::remove_if(val.begin(), val.end(), [](unsigned char c) { return std::isspace(c); }), val.end());
     const char* new_tags[] = {"kmer_count", "k=15", "MERGE_STRATEGY_SUM", ""};
     if (val.empty())
     {
@@ -42,8 +40,17 @@ void seq_count_kmers(const DBAccess *access, const char* filter_fail_tag, const 
     dbkey_t new_key;
     const char * new_value;
     for (const auto& pair : kmer_counts)
-    {
-        b_key = sequence_to_bits(pair.first);
+    {   
+        try
+        {
+            b_key = sequence_to_bits(pair.first);
+        }
+        catch (const runtime_error& e)
+        {
+            cerr << "Error with " << e.what() << endl;
+            cerr << "Attempting to do kmer: '" << pair.first << "'" << endl;
+            throw runtime_error("error kmer!");
+        }
         if (b_key == -1)
         {
             cerr << "Invalid nucleotide in kmer: '" << pair.first << "'" << endl;
