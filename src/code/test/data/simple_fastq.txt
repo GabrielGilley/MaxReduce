@@ -1,0 +1,10 @@
+TAGS
+shortread
+human
+chr13
+VALUE
+@chr1_15660191_15660680_0:0:0_0:0:0_1/1                                                                                                                        
+GGTTGCTGATTCTGGGGGGTTAGGGGGTAGTCATCACAACCTCAGGTCTGGCAGGGGTAGGATCTGCCTCTGGGGCCTCCAAAGTGGGTAGGAGGAGCAGGTGGCCAACTCTCTGCACCAGCAGGGAGGTGGGGTAACCCCTATGCAGCC         
++                                                                                                                                                            
+555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555
+END

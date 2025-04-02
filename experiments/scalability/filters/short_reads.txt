@@ -1,0 +1,2 @@
+read_to_seq
+seq_count_kmers
