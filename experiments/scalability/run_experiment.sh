@@ -14,27 +14,28 @@ NODE_COUNT=$5
 
 # Get the count of available idle processing nodes in the specified partition
 AVAILABLE_NODE_COUNT=$(sinfo -N -p compute | grep idle | awk '{print $1}' | wc -l)
-
+AVAILABLE_NODES=$(sinfo -N -p compute | grep idle | awk '{print $1}')
 # Check if available nodes are less than requested nodes
 if [ "$AVAILABLE_NODE_COUNT" -lt "$NODE_COUNT" ]; then
     echo "Error: Requested $NODE_COUNT nodes when only $AVAILABLE_NODE_COUNT nodes are available."
     exit 1
 fi
 
-# Clear space
-echo "Removing BigSpace and Elga files across all available nodes. You have 5 seconds to cancel (CTRL+C)."
-for i in {5..0}; do
-    echo "$i"
-    sleep 1
-done
 
-echo "Removing... Please wait..."
-srun -N $AVAILABLE_NODE_COUNT bash -c 'sudo rm -rf /scratch/bigspace* /tmp/elga*'
-echo "BigSpace and Elga files removed."
+# Calculate half the number of available nodes
+# HALF_NODE_COUNT=$(($AVAILABLE_NODE_COUNT / 2))
+# Get the first half of the available nodes
+# FIRST_HALF_NODES=$(echo "$AVAILABLE_NODES" | head -n "$HALF_NODE_COUNT")
+
+# Get the second half of the available nodes
+# SECOND_HALF_NODES=$(echo "$AVAILABLE_NODES" | tail -n +"$((HALF_NODE_COUNT + 1))")
+
+# srun -N "$HALF_NODE_COUNT" bash -c 'rm -rf /scratch/bigspace* /tmp/elga*' --nodelist="$FIRST_HALF_NODES" &
+# srun -N "$((NODE_COUNT - HALF_NODE_COUNT))" bash -c 'rm -rf /scratch/bigspace* /tmp/elga*' --nodelist="$SECOND_HALF_NODES" &
 
 
 # Submit batch job
-SLURM_OUTPUT=$(sbatch -N "$NODE_COUNT" pardb.sbatch)
+SLURM_OUTPUT=$(sbatch -N "$NODE_COUNT" --mem 490000 pardb.sbatch)
 JOB_ID=$(echo "$SLURM_OUTPUT" | awk '{print $4}')
 echo "Batch job submitted with $NODE_COUNT nodes. Job ID: $JOB_ID"
 

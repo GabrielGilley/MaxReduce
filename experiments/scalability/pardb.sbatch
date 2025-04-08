@@ -22,7 +22,9 @@ SCRIPT_DIR=$(dirname $SCRIPT_PATH)
 PANDO_PARDB_BIN=$SCRIPT_DIR/../../src/sifs/pando_pardb.sif
 
 PANDO_BIND_IP_FILE=/ip
-
+echo REMOVING FILES
+srun bash -c 'sudo rm /tmp/elga.ipc* /scratch/bigspace*'
+srun bash -c 'rm /tmp/elga.ipc* /scratch/bigspace*'
 
 echo START
 date
