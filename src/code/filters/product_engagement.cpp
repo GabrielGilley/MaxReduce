@@ -38,7 +38,7 @@ void run_(const DBAccess *access) {
         return fail_(access, filter_fail_tag, filter_name, "String split was the wrong size");
     }
 
-    const size_t X = 50; // the quality score must be at least X to join, will vary for each experiment
+    const size_t X = 91; // the quality score must be at least X to join, will vary for each experiment
 
     size_t engagement_score = stoul(fields[2]);
     if (engagement_score < X) {
