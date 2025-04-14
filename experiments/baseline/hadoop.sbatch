@@ -18,11 +18,11 @@ SCRIPT_DIR=$(dirname $SCRIPT_PATH)
 export HADOOP_HOME="$SCRIPT_DIR/hadoop-3.4.1"
 export HADOOP_CONF_DIR=${HADOOP_HOME}/etc/hadoop
 export HADOOP_WORKERS="/tmp/workers"
-
+echo "After workers"
 CONFIG_MARKER_STR="# SLURM SPECIFIC CONFIG"
 sed -i "/$CONFIG_MARKER_STR/,\$d" $HADOOP_CONF_DIR/hadoop-env.sh
 echo "$CONFIG_MARKER_STR" >> $HADOOP_CONF_DIR/hadoop-env.sh
-
+echo "before exports"
 echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk" >> $HADOOP_CONF_DIR/hadoop-env.sh
 echo "export HADOOP_HOME=$SCRIPT_DIR/hadoop-3.4.1" >> $HADOOP_CONF_DIR/hadoop-env.sh
 echo "export HADOOP_CONF_DIR=${HADOOP_HOME}/etc/hadoop" >> $HADOOP_CONF_DIR/hadoop-env.sh
@@ -34,8 +34,9 @@ namenode=$(sed -n '1p' $HADOOP_WORKERS)
 echo "Namenode: $namenode"
 
 # cleanup previous run
-srun bash -c "jps | awk '{print $1}' | xargs kill -9"
-srun bash -c 'rm -rf /tmp/hadoop* /scratch/hadoop-*-dir'
+# srun bash -c "jps | awk '{print $1}' | xargs kill -9"
+# srun bash -c 'rm -rf /tmp/hadoop* /scratch/hadoop-*-dir /tmp/jetty*'
+# srun bash -c 'sudo rm -rf /tmp/hadoop* /scratch/hadoop-*-dir'
 
 cat << EOL > $HADOOP_CONF_DIR/yarn-site.xml
 <?xml version="1.0"?>
@@ -168,6 +169,23 @@ HADOOP_WORKERS= hadoop_uservar_su hdfs secondarynamenode "${HADOOP_HDFS_HOME}/bi
   --daemon start \
   secondarynamenode
 
+trap cleanup SIGTERM
+
+cleanup() {
+    echo "Killing processes"
+    $HADOOP_HOME/sbin/stop-yarn.sh
+    $HADOOP_HOME/sbin/stop-dfs.sh
+    echo "File cleanup"
+    # cleanup previous run
+    srun bash -c "jps | awk '{print $1}' | xargs kill -9"
+    srun bash -c 'rm -rf /tmp/hadoop* /scratch/hadoop-*-dir /tmp/jetty*'
+    srun bash -c 'sudo rm -rf /tmp/hadoop* /scratch/hadoop-*-dir'
+    # srun bash -c "sudo rm -r /tmp/hadoop* /tmp/*jni* hsperfdata_* /tmp/jetty*"
+    sleep 10;
+   
+    srun --exclusive bash -c "killall -9 java"
+    exit 0
+}
 
 # Start YARN
 $HADOOP_HOME/sbin/start-yarn.sh
@@ -175,6 +193,11 @@ $HADOOP_HOME/sbin/start-yarn.sh
 sleep 10
 $HADOOP_HOME/bin/hdfs dfsadmin -report
 $HADOOP_HOME/bin/hdfs dfs -mkdir -p /user/$USER/input/
+
+# Send signal for script
+echo "CREATING FILE"
+touch hadoop_setup_complete
+
 # to test:
 # ./bin/hdfs dfs -put /cscratch/hadoop-test/input.txt /user/$USER/input/
 # ./bin/hdfs dfs -ls input
