@@ -8,7 +8,7 @@ public class JoinMapper extends Mapper<LongWritable, Text, Text, Text> {
     @Override
     protected void setup(Context context) throws IOException, InterruptedException 
     {
-        join_chance = context.getConfiguration().getInt("join_chance", 10); // Default k-mer length
+        join_chance = context.getConfiguration().getInt("join_percentage", 10);
     }
     @Override
     public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
@@ -23,7 +23,7 @@ public class JoinMapper extends Mapper<LongWritable, Text, Text, Text> {
             int number = Integer.parseInt(parts[2].trim());
 
             // Emit only if NUMBER > 10
-            if (number > join_chance) 
+            if (number <= join_chance) 
             {
                 context.write(new Text(productId), new Text("USER," + userId)); // Emit USER_ID with a prefix
             }

@@ -30,19 +30,21 @@ fi
 SLURM_OUTPUT=$(sbatch -N "$NODE_COUNT" --mem 490000 hadoop.sbatch)
 # SLURM_OUTPUT=$(sbatch -w en[195,209-214,216-234,236-255,269-274,276-277] --mem 490000 hadoop.sbatch)
 JOB_ID=$(echo "$SLURM_OUTPUT" | awk '{print $4}')
+sleep 1
+NODE_LIST=$(scontrol show job $JOB_ID | grep "NodeList=" | awk -F'=' '{print $2}' | awk NR==2 | tr -d ' ')
 echo "Batch job submitted with $NODE_COUNT nodes. Job ID: $JOB_ID"
+echo "Nodes used $NODE_LIST"
 sleep 5
 scp en$(scontrol show job $JOB_ID | grep "NodeList=" | awk 'NR==2' | awk -F'=' '{print $2}' | tr -d ' ' | awk -F',' '{print $1}    ' | awk -F'[' '{print $2}' | awk -F'-' '{print $1}' | sed 's/[[:space:]]//g'):/tmp/workers /tmp/
 
 cleanup() {
   echo "Canceling Job $JOB_ID"
   #parallel-ssh -h <(scontrol show hostnames)
-  NODE_LIST=$(scontrol show job $JOB_ID | grep "NodeList=" | awk -F'=' '{print $2}' | tr -d ' ')
-  srun --priority=1000 -m $NODE_LIST bash -c  "sudo rm -rf /tmp/hadoop* /tmp/*jni* /tmp/hsperfdata_* /tmp/jetty*"
   scancel $JOB_ID
   rm hadoop_setup_complete
-  ./hadoop-3.4.1/bin/hadoop fs -rm -rf -skipTrash /user
-  ./hadoop-3.4.1/bin/hadoop fs -rm -rf -skipTrash /tmp
+  srun -m $NODE_LIST bash -c  "sudo rm -rf /tmp/hadoop* /tmp/*jni* /tmp/hsperfdata_* /tmp/jetty*"
+  ./hadoop-3.4.1/bin/hadoop fs -rm -r -skipTrash /user
+  ./hadoop-3.4.1/bin/hadoop fs -rm -r -skipTrash /tmp
   #./hadoop-3.4.1/sbin/stop-dfs.sh
   #./hadoop-3.4.1/sbin/stop-yarn.sh
   exit 0
@@ -65,19 +67,20 @@ sleep 1
 echo "Clearing old files..."
 ./hadoop-3.4.1/bin/hadoop fs -ls /user/$USER/output/
 ./hadoop-3.4.1/bin/hadoop fs -rm -r /user/$USER/output/
+./hadoop-3.4.1/bin/hdfs dfs -rm -r /user/$USER/output/
 ./hadoop-3.4.1/bin/hdfs dfs -mkdir -p /user/$USER/input/
 ./hadoop-3.4.1/bin/hadoop fs -rm -r /user/
 ./hadoop-3.4.1/bin/hadoop fs -mkdir -p /user/$USER/input
 
 echo "Loading input..."
-./hadoop-3.4.1/bin/hdfs dfs -put $DATA_DIR /user/$USER/input/
+./hadoop-3.4.1/bin/hdfs dfs -put $DATA_DIR/* /user/$USER/input/
 # ./hadoop-3.4.1/bin/hdfs dfs -rm -r /user/$USER/output/
 # ./hadoop-3.4.1/bin/hdfs dfs -mkdir -p /user/$USER/new_output/
 # ./hadoop-3.4.1/bin/hadoop fs -mkdir -p /user/$USER/new_output/
 
 
 echo "Beginning Experiment..."
-TIME_VAL=$( { time ./hadoop-3.4.1/bin/yarn --workers jar $JAR_FILE $TEST_NAME /user/$USER/input/ /user/$USER/new_output/; } 2>&1 )
+TIME_VAL=$( { time ./hadoop-3.4.1/bin/yarn --workers jar $JAR_FILE $TEST_NAME /user/$USER/input/ /user/$USER/output/; } 2>&1 )
 echo "Experiment Complete"
 echo $TIME_VAL >> tmp.txt
 
@@ -94,9 +97,9 @@ total_seconds=$(echo "$minutes * 60 + $seconds" | bc)
 echo "Time Taken: $total_seconds"
 
 echo "Fetching results..."
-rm -rf $RESULTS_DIR/new_output/
-mkdir -p "$RESULTS_DIR/new_output/"
-./hadoop-3.4.1/bin/hadoop fs -get /user/$USER/new_output/* $RESULTS_DIR/new_output/
-printf "%s," "$total_seconds" >> "$RESULTS_DIR/new.csv"
+rm -rf $RESULTS_DIR/output/
+mkdir -p "$RESULTS_DIR/output/"
+./hadoop-3.4.1/bin/hadoop fs -get /user/$USER/output/ $RESULTS_DIR/
+printf "%s," "$total_seconds" >> "$RESULTS_DIR/time.csv"
 
 cleanup

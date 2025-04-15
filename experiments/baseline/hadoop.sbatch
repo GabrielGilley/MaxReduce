@@ -34,9 +34,9 @@ namenode=$(sed -n '1p' $HADOOP_WORKERS)
 echo "Namenode: $namenode"
 
 # cleanup previous run
-# srun bash -c "jps | awk '{print $1}' | xargs kill -9"
-# srun bash -c 'rm -rf /tmp/hadoop* /scratch/hadoop-*-dir /tmp/jetty*'
-# srun bash -c 'sudo rm -rf /tmp/hadoop* /scratch/hadoop-*-dir'
+srun bash -c "jps | awk '{print $1}' | xargs kill -9"
+srun bash -c 'rm -rf /tmp/hadoop* /scratch/hadoop-*-dir /tmp/jetty*'
+srun bash -c 'sudo rm -rf /tmp/hadoop* /scratch/hadoop-*-dir'
 
 cat << EOL > $HADOOP_CONF_DIR/yarn-site.xml
 <?xml version="1.0"?>
