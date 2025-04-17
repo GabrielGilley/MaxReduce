@@ -193,6 +193,9 @@ $HADOOP_HOME/sbin/start-yarn.sh
 sleep 10
 $HADOOP_HOME/bin/hdfs dfsadmin -report
 $HADOOP_HOME/bin/hdfs dfs -mkdir -p /user/$USER/input/
+$HADOOP_HOME/bin/hdfs dfs -rm -r /user/$USER/output/
+
+
 
 # Send signal for script
 echo "CREATING FILE"

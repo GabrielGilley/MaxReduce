@@ -29,12 +29,12 @@ void fail_(const DBAccess *access, const char* filter_fail_tag, const char* filt
 
 void run_(const DBAccess *access) {
     string val_s = access->value;
-    
     // extract the fields into a vector
     std::vector<std::string> fields;
     boost::split(fields, val_s, boost::is_any_of(","));
 
-    if (fields.size() != 3) {
+    if (fields.size() != 3) 
+    {
         return fail_(access, filter_fail_tag, filter_name, "String split was the wrong size");
     }
 
